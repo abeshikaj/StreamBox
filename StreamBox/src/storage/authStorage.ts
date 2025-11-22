@@ -3,6 +3,7 @@ import { User } from '../types/auth';
 
 const USER_KEY = '@streambox_user';
 const TOKEN_KEY = '@streambox_token';
+const REGISTERED_USERS_KEY = '@streambox_registered_users';
 
 export const authStorage = {
   /**
@@ -72,6 +73,103 @@ export const authStorage = {
     } catch (error) {
       console.error('Error checking authentication:', error);
       return false;
+    }
+  },
+
+  /**
+   * Register a new user
+   * @param username - User's username
+   * @param email - User's email
+   * @param password - User's password
+   * @returns User object with token
+   */
+  registerUser: async (username: string, email: string, password: string): Promise<User> => {
+    try {
+      // Get existing registered users
+      const existingUsersData = await AsyncStorage.getItem(REGISTERED_USERS_KEY);
+      const existingUsers = existingUsersData ? JSON.parse(existingUsersData) : [];
+
+      // Check if username or email already exists
+      const userExists = existingUsers.find(
+        (u: any) => u.username === username || u.email === email
+      );
+      if (userExists) {
+        throw new Error('Username or email already exists');
+      }
+
+      // Create new user
+      const newUser = {
+        username,
+        email,
+        password, // In production, this should be hashed
+        firstName: username,
+        lastName: '',
+        gender: 'male',
+        image: '',
+      };
+
+      // Add to registered users
+      existingUsers.push(newUser);
+      await AsyncStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(existingUsers));
+
+      // Create user session
+      const token = `token_${Date.now()}_${username}`;
+      const user: User = {
+        id: existingUsers.length,
+        username: newUser.username,
+        email: newUser.email,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        gender: newUser.gender,
+        image: newUser.image,
+        token,
+      };
+
+      return user;
+    } catch (error) {
+      console.error('Error registering user:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Login with registered credentials
+   * @param username - User's username
+   * @param password - User's password
+   * @returns User object with token or null if credentials are invalid
+   */
+  loginWithCredentials: async (username: string, password: string): Promise<User | null> => {
+    try {
+      // Get registered users
+      const existingUsersData = await AsyncStorage.getItem(REGISTERED_USERS_KEY);
+      const existingUsers = existingUsersData ? JSON.parse(existingUsersData) : [];
+
+      // Find user with matching credentials
+      const user = existingUsers.find(
+        (u: any) => u.username === username && u.password === password
+      );
+
+      if (!user) {
+        return null;
+      }
+
+      // Create user session
+      const token = `token_${Date.now()}_${username}`;
+      const loggedInUser: User = {
+        id: existingUsers.indexOf(user) + 1,
+        username: user.username,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        gender: user.gender || 'male',
+        image: user.image,
+        token,
+      };
+
+      return loggedInUser;
+    } catch (error) {
+      console.error('Error logging in:', error);
+      return null;
     }
   },
 };

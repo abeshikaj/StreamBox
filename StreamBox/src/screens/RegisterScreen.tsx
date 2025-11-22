@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -16,7 +17,9 @@ import { Feather } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import CustomText from '../components/CustomText';
+import AppLogo from '../components/AppLogo';
 import { RegisterCredentials } from '../types/auth';
+import { authStorage } from '../storage/authStorage';
 
 type AuthStackParamList = {
   Login: undefined;
@@ -54,6 +57,7 @@ export default function RegisterScreen() {
   const navigation = useNavigation<RegisterScreenNavigationProp>();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     control,
@@ -71,21 +75,36 @@ export default function RegisterScreen() {
   });
 
   const onSubmit = async (data: RegisterCredentials) => {
-    // Note: DummyJSON doesn't have a real register endpoint
-    // This is a UI-only implementation for demonstration
-    Alert.alert(
-      'Registration',
-      'This is a demo app. Registration is for UI demonstration only.\n\nPlease use the login screen with demo credentials.',
-      [
-        {
-          text: 'Go to Login',
-          onPress: () => {
-            reset();
-            navigation.navigate('Login');
+    setIsLoading(true);
+    try {
+      // Register the user
+      const user = await authStorage.registerUser(data.username, data.email, data.password);
+      
+      // Save user session
+      await authStorage.saveUser(user);
+      
+      Alert.alert(
+        'Success',
+        'Account created successfully! You are now logged in.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              reset();
+              // Navigation will happen automatically when token is detected
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    } catch (error: any) {
+      Alert.alert(
+        'Registration Failed',
+        error.message || 'An error occurred during registration. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -98,7 +117,7 @@ export default function RegisterScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <Feather name="user-plus" size={64} color="#e94560" />
+          <AppLogo size="large" showText={true} />
           <CustomText style={styles.title}>Create Account</CustomText>
           <CustomText style={styles.subtitle}>Join StreamBox today</CustomText>
         </View>
@@ -215,8 +234,16 @@ export default function RegisterScreen() {
             <CustomText style={styles.errorText}>{errors.confirmPassword.message}</CustomText>
           )}
 
-          <TouchableOpacity style={styles.button} onPress={handleSubmit(onSubmit)}>
-            <CustomText style={styles.buttonText}>Sign Up</CustomText>
+          <TouchableOpacity 
+            style={[styles.button, isLoading && styles.buttonDisabled]} 
+            onPress={handleSubmit(onSubmit)}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <CustomText style={styles.buttonText}>Sign Up</CustomText>
+            )}
           </TouchableOpacity>
 
           <View style={styles.loginContainer}>
@@ -234,7 +261,7 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f3460',
+    backgroundColor: '#374151',
   },
   scrollContent: {
     flexGrow: 1,
@@ -282,23 +309,26 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   errorText: {
-    color: '#e94560',
+    color: '#F97316',
     fontSize: 12,
     marginBottom: 12,
     marginLeft: 4,
   },
   button: {
-    backgroundColor: '#e94560',
+    backgroundColor: '#F97316',
     height: 56,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 16,
-    shadowColor: '#e94560',
+    shadowColor: '#F97316',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     color: '#fff',
@@ -315,7 +345,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   loginLink: {
-    color: '#e94560',
+    color: '#F97316',
     fontSize: 14,
     fontWeight: 'bold',
   },

@@ -3,11 +3,21 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { authStorage } from '../storage/authStorage';
 import AuthStack from './AuthStack';
-import HomeScreen from '../screens/HomeScreen';
+import MainTabs from './MainTabs';
+import MovieDetailsScreen from '../screens/MovieDetailsScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
+import SettingsScreen from '../screens/SettingsScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
+import RatedMoviesScreen from '../screens/RatedMoviesScreen';
 
 export type RootStackParamList = {
   Auth: undefined;
-  Home: undefined;
+  Main: undefined;
+  MovieDetails: { movieId: number };
+  EditProfile: undefined;
+  Settings: undefined;
+  Notifications: undefined;
+  RatedMovies: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -44,7 +54,7 @@ export default function AppNavigator() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#e94560" />
+        <ActivityIndicator size="large" color="#F97316" />
       </View>
     );
   }
@@ -52,11 +62,53 @@ export default function AppNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {userToken !== null ? (
-        <Stack.Screen 
-          name="Home" 
-          component={HomeScreen}
-          options={{ headerShown: false }}
-        />
+        <>
+          <Stack.Screen 
+            name="Main" 
+            component={MainTabs}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen 
+            name="MovieDetails" 
+            component={MovieDetailsScreen}
+            options={{ 
+              headerShown: false,
+              presentation: 'card',
+            }}
+          />
+          <Stack.Screen 
+            name="EditProfile" 
+            component={EditProfileScreen}
+            options={{ 
+              headerShown: false,
+              presentation: 'card',
+            }}
+          />
+          <Stack.Screen 
+            name="Settings" 
+            component={SettingsScreen}
+            options={{ 
+              headerShown: false,
+              presentation: 'card',
+            }}
+          />
+          <Stack.Screen 
+            name="Notifications" 
+            component={NotificationsScreen}
+            options={{ 
+              headerShown: false,
+              presentation: 'card',
+            }}
+          />
+          <Stack.Screen 
+            name="RatedMovies" 
+            component={RatedMoviesScreen}
+            options={{ 
+              headerShown: false,
+              presentation: 'card',
+            }}
+          />
+        </>
       ) : (
         <Stack.Screen 
           name="Auth" 
@@ -73,6 +125,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0f3460',
+    backgroundColor: '#374151',
   },
 });

@@ -106,7 +106,7 @@ Other available users:
 ### Register Screen (UI Only)
 - Username: Required, 3-20 chars, alphanumeric + underscore
 - Email: Required, valid email format
-- Password: Required, min 6 chars, must contain uppercase, lowercase, and number
+- Password: Required, min 6 chars, must contain case, lowercase, and number
 - Confirm Password: Must match password
 
 ## 🚦 Running the App

@@ -17,6 +17,7 @@ import { Feather } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import CustomText from '../components/CustomText';
+import AppLogo from '../components/AppLogo';
 import { authApi } from '../api/authApi';
 import { authStorage } from '../storage/authStorage';
 import { LoginCredentials, User } from '../types/auth';
@@ -59,6 +60,18 @@ export default function LoginScreen() {
   const onSubmit = async (data: LoginCredentials) => {
     setLoading(true);
     try {
+      // First, try to login with registered users
+      const registeredUser = await authStorage.loginWithCredentials(data.username, data.password);
+      
+      if (registeredUser) {
+        // User found in registered users
+        await authStorage.saveUser(registeredUser);
+        Alert.alert('Success', `Welcome back, ${registeredUser.firstName}!`);
+        // Navigation will be handled by AppNavigator
+        return;
+      }
+
+      // If not found in registered users, try API login
       const response = await authApi.login(data);
       const token = response.accessToken || response.token;
       
@@ -82,7 +95,7 @@ export default function LoginScreen() {
       Alert.alert('Success', `Welcome back, ${user.firstName}!`);
       // Navigation will be handled by AppNavigator
     } catch (error) {
-      Alert.alert('Login Failed', error instanceof Error ? error.message : 'Please try again');
+      Alert.alert('Login Failed', 'Invalid username or password. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -98,8 +111,7 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <Feather name="film" size={64} color="#e94560" />
-          <CustomText style={styles.title}>StreamBox</CustomText>
+          <AppLogo size="large" showText={true} />
           <CustomText style={styles.subtitle}>Sign in to continue</CustomText>
         </View>
 
@@ -176,11 +188,7 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.demoContainer}>
-            <CustomText style={styles.demoText}>Demo credentials:</CustomText>
-            <CustomText style={styles.demoCredentials}>Username: emilys</CustomText>
-            <CustomText style={styles.demoCredentials}>Password: emilyspass</CustomText>
-          </View>
+         
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -190,7 +198,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f3460',
+    backgroundColor: '#374151',
   },
   scrollContent: {
     flexGrow: 1,
@@ -209,7 +217,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: '#c5c5c5',
+    color: '#D1D5DB',
     marginTop: 8,
   },
   form: {
@@ -218,12 +226,12 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a1a2e',
+    backgroundColor: '#4B5563',
     borderRadius: 12,
     marginBottom: 8,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#2d2d44',
+    borderColor: '#6B7280',
   },
   inputIcon: {
     marginRight: 12,
@@ -238,19 +246,19 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   errorText: {
-    color: '#e94560',
+    color: '#F97316',
     fontSize: 12,
     marginBottom: 12,
     marginLeft: 4,
   },
   button: {
-    backgroundColor: '#e94560',
+    backgroundColor: '#F97316',
     height: 56,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 16,
-    shadowColor: '#e94560',
+    shadowColor: '#F97316',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -270,11 +278,11 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   registerText: {
-    color: '#c5c5c5',
+    color: '#D1D5DB',
     fontSize: 14,
   },
   registerLink: {
-    color: '#e94560',
+    color: '#F97316',
     fontSize: 14,
     fontWeight: 'bold',
   },
