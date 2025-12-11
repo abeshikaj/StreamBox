@@ -261,7 +261,7 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#374151',
+    backgroundColor: '#000000',
   },
   scrollContent: {
     flexGrow: 1,
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: '#c5c5c5',
+    color: '#A3A3A3',
     marginTop: 8,
   },
   form: {
@@ -289,12 +289,12 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a1a2e',
+    backgroundColor: '#1A1A1A',
     borderRadius: 12,
     marginBottom: 8,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#2d2d44',
+    borderColor: '#404040',
   },
   inputIcon: {
     marginRight: 12,
@@ -309,23 +309,23 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   errorText: {
-    color: '#F97316',
+    color: '#EF4444',
     fontSize: 12,
     marginBottom: 12,
     marginLeft: 4,
   },
   button: {
-    backgroundColor: '#F97316',
+    backgroundColor: '#DC2626',
     height: 56,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 16,
-    shadowColor: '#F97316',
+    shadowColor: '#DC2626',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.4,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 6,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -341,11 +341,11 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   loginText: {
-    color: '#c5c5c5',
+    color: '#A3A3A3',
     fontSize: 14,
   },
   loginLink: {
-    color: '#F97316',
+    color: '#EF4444',
     fontSize: 14,
     fontWeight: 'bold',
   },

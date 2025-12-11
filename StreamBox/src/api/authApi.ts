@@ -3,40 +3,40 @@ import { AuthResponse, LoginCredentials } from '../types/auth';
 
 const API_BASE_URL = 'https://dummyjson.com';
 
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  timeout: 10000,
-});
-
 export const authApi = {
   /**
-   * Login user with username and password
-   * @param credentials - Username and password
-   * @returns Promise with user data and token
+   * Login with username and password
    */
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     try {
-      const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
+      const response = await axios.post<AuthResponse>(
+        `${API_BASE_URL}/auth/login`,
+        {
+          username: credentials.username,
+          password: credentials.password,
+          expiresInMins: 60,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Login failed. Please try again.');
+        throw new Error(error.response?.data?.message || 'Login failed. Please check your credentials.');
       }
-      throw new Error('An unexpected error occurred during login.');
+      throw new Error('An unexpected error occurred during login');
     }
   },
 
   /**
-   * Verify token validity
-   * @param token - JWT token to verify
-   * @returns Promise with user data
+   * Get current user profile
    */
-  verifyToken: async (token: string): Promise<AuthResponse> => {
+  getCurrentUser: async (token: string): Promise<AuthResponse> => {
     try {
-      const response = await apiClient.get<AuthResponse>('/auth/me', {
+      const response = await axios.get<AuthResponse>(`${API_BASE_URL}/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -44,9 +44,35 @@ export const authApi = {
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error('Invalid or expired token');
+        throw new Error(error.response?.data?.message || 'Failed to get user profile');
       }
-      throw new Error('Token verification failed');
+      throw new Error('An unexpected error occurred');
+    }
+  },
+
+  /**
+   * Refresh authentication token
+   */
+  refreshToken: async (refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> => {
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/auth/refresh`,
+        {
+          refreshToken,
+          expiresInMins: 60,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to refresh token');
+      }
+      throw new Error('An unexpected error occurred');
     }
   },
 };

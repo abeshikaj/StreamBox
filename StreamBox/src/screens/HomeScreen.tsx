@@ -49,24 +49,27 @@ export default function HomeScreen() {
   const carouselData = [
     {
       id: '1',
-      title: user ? `Welcome back, ${user.firstName}!` : 'Welcome to StreamBox',
-      subtitle: 'Discover amazing movies and TV shows',
+      title: user ? `Welcome, ${user.firstName}!` : 'Welcome to StreamBox',
+      subtitle: 'Discover thousands of movies and shows',
       icon: 'user' as const,
-      image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&q=80',
+      image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1200&q=80',
+      gradient: ['rgba(255, 140, 0, 0.8)', 'rgba(0, 0, 0, 0.9)'],
     },
     {
       id: '2',
-      title: 'StreamBox',
-      subtitle: 'Your ultimate entertainment hub',
-      icon: 'film' as const,
-      image: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&q=80',
+      title: 'Watch Anywhere',
+      subtitle: 'Stream on any device, anytime',
+      icon: 'tv' as const,
+      image: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1200&q=80',
+      gradient: ['rgba(255, 165, 0, 0.8)', 'rgba(0, 0, 0, 0.9)'],
     },
     {
       id: '3',
-      title: 'Explore & Enjoy',
-      subtitle: 'Search, filter, and save your favorites',
-      icon: 'star' as const,
-      image: 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=800&q=80',
+      title: 'Your Favorites',
+      subtitle: 'Save and rate your favorite content',
+      icon: 'heart' as const,
+      image: 'https://cdn.vectorstock.com/i/preview-1x/32/24/online-movie-and-television-background-vector-16043224.jpg',
+      gradient: ['rgba(255, 127, 0, 0.8)', 'rgba(0, 0, 0, 0.9)'],
     },
   ];
 
@@ -176,9 +179,10 @@ export default function HomeScreen() {
       gap: 8,
     },
     sectionTitle: {
-      fontSize: 20,
+      fontSize: 22,
       fontWeight: 'bold',
       color: colors.text,
+      letterSpacing: 0.3,
     },
     seeAllText: {
       color: colors.primary,
@@ -195,26 +199,36 @@ export default function HomeScreen() {
       gap: 12,
     },
     trendingCard: {
-      width: 140,
-      marginRight: 12,
+      width: 150,
+      marginRight: 16,
     },
     trendingPoster: {
-      width: 140,
-      height: 200,
-      borderRadius: 12,
+      width: 150,
+      height: 220,
+      borderRadius: 16,
       backgroundColor: colors.card,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+      elevation: 6,
     },
     trendingRating: {
       position: 'absolute',
-      top: 8,
-      left: 8,
+      top: 10,
+      left: 10,
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      paddingHorizontal: 6,
-      paddingVertical: 4,
-      borderRadius: 8,
+      backgroundColor: 'rgba(0, 0, 0, 0.75)',
+      paddingHorizontal: 8,
+      paddingVertical: 5,
+      borderRadius: 10,
       gap: 4,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 3,
+      elevation: 3,
     },
     trendingRatingText: {
       color: '#fff',
@@ -222,12 +236,13 @@ export default function HomeScreen() {
       fontWeight: 'bold',
     },
     trendingInfo: {
-      marginTop: 8,
+      marginTop: 10,
     },
     trendingTitle: {
-      fontSize: 14,
-      fontWeight: 'bold',
+      fontSize: 15,
+      fontWeight: '700',
       color: colors.text,
+      lineHeight: 20,
     },
     trendingYear: {
       fontSize: 12,
@@ -287,31 +302,38 @@ export default function HomeScreen() {
       color: colors.textSecondary,
     },
     carousel: {
-      height: 200,
+      height: 240,
       marginTop: 60,
     },
     carouselItem: {
       width: width - 40,
       marginHorizontal: 20,
       backgroundColor: colors.card,
-      borderRadius: 20,
+      borderRadius: 24,
       overflow: 'hidden',
-      height: 200,
-      borderWidth: 1,
-      borderColor: colors.border,
+      height: 240,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.3,
+      shadowRadius: 16,
+      elevation: 12,
     },
     carouselImage: {
       position: 'absolute',
       width: '100%',
       height: '100%',
-      borderRadius: 20,
     },
     carouselOverlay: {
       position: 'absolute',
       width: '100%',
       height: '100%',
-      backgroundColor: 'rgba(0, 0, 0, 0.6)',
-      borderRadius: 20,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    carouselGradient: {
+      position: 'absolute',
+      width: '100%',
+      height: '100%',
+      backgroundColor: 'transparent',
     },
     carouselContent: {
       flex: 1,
@@ -321,50 +343,64 @@ export default function HomeScreen() {
       zIndex: 1,
     },
     carouselIcon: {
-      width: 70,
-      height: 70,
-      backgroundColor: 'rgba(0, 180, 216, 0.3)',
-      borderRadius: 35,
+      width: 80,
+      height: 80,
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      borderRadius: 40,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: 16,
-      borderWidth: 2,
-      borderColor: colors.primary,
+      marginBottom: 20,
+      borderWidth: 3,
+      borderColor: 'rgba(255, 255, 255, 0.4)',
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.5,
+      shadowRadius: 8,
+      elevation: 8,
     },
     carouselTitle: {
-      fontSize: 24,
+      fontSize: 28,
       fontWeight: 'bold',
       color: '#FFFFFF',
       textAlign: 'center',
-      marginBottom: 8,
-      textShadowColor: 'rgba(0, 0, 0, 0.75)',
-      textShadowOffset: { width: 0, height: 2 },
-      textShadowRadius: 4,
+      marginBottom: 10,
+      textShadowColor: 'rgba(0, 0, 0, 0.9)',
+      textShadowOffset: { width: 0, height: 3 },
+      textShadowRadius: 6,
+      letterSpacing: 0.5,
     },
     carouselSubtitle: {
-      fontSize: 14,
-      color: '#F0F0F0',
+      fontSize: 15,
+      color: '#F5F5F5',
       textAlign: 'center',
-      textShadowColor: 'rgba(0, 0, 0, 0.75)',
-      textShadowOffset: { width: 0, height: 1 },
-      textShadowRadius: 3,
+      textShadowColor: 'rgba(0, 0, 0, 0.9)',
+      textShadowOffset: { width: 0, height: 2 },
+      textShadowRadius: 4,
+      fontWeight: '500',
     },
     carouselDots: {
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
-      marginTop: 12,
-      gap: 8,
+      marginTop: 16,
+      gap: 10,
     },
     carouselDot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: colors.border,
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      backgroundColor: colors.textSecondary,
+      opacity: 0.4,
     },
     carouselDotActive: {
-      width: 24,
+      width: 28,
       backgroundColor: colors.primary,
+      opacity: 1,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.6,
+      shadowRadius: 4,
+      elevation: 4,
     },
   });
 
@@ -454,18 +490,23 @@ export default function HomeScreen() {
                 style={styles.trendingCard}
                 onPress={() => navigation.navigate('MovieDetails', { movieId: item.id })}
               >
-                <Image source={{ uri: item.poster }} style={styles.trendingPoster} />
+                <Image 
+                  source={{ uri: item.posterPath || item.poster || 'https://via.placeholder.com/500x750?text=No+Image' }} 
+                  style={styles.trendingPoster} 
+                />
                 <View style={styles.trendingRating}>
                   <Feather name="star" size={12} color="#ffd700" />
                   <CustomText style={styles.trendingRatingText}>
-                    {item.rating.toFixed(1)}
+                    {item.voteAverage ? item.voteAverage.toFixed(1) : item.rating ? item.rating.toFixed(1) : 'N/A'}
                   </CustomText>
                 </View>
                 <View style={styles.trendingInfo}>
                   <CustomText style={styles.trendingTitle} numberOfLines={1}>
                     {item.title}
                   </CustomText>
-                  <CustomText style={styles.trendingYear}>{item.releaseYear}</CustomText>
+                  <CustomText style={styles.trendingYear}>
+                    {item.releaseDate ? item.releaseDate.split('-')[0] : item.releaseYear || 'N/A'}
+                  </CustomText>
                 </View>
               </TouchableOpacity>
             )}

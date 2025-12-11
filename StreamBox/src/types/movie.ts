@@ -4,15 +4,30 @@ export type Genre = 'Action' | 'Adventure' | 'Animation' | 'Biography' | 'Comedy
 export interface Movie {
   id: number;
   title: string;
-  description: string;
-  poster: string;
-  rating: number;
-  language: Language;
-  genres: Genre[];
-  releaseYear: number;
-  duration: number; // in minutes
-  director: string;
-  cast: string[];
+  description?: string;
+  overview?: string;
+  poster?: string;
+  posterPath?: string;
+  backdropPath?: string;
+  rating?: number;
+  voteAverage?: number;
+  voteCount?: number;
+  popularity?: number;
+  language?: Language;
+  originalLanguage?: string;
+  genres?: Genre[];
+  genreIds?: number[];
+  releaseYear?: number;
+  releaseDate?: string;
+  duration?: number; // in minutes
+  runtime?: number;
+  director?: string;
+  cast?: any[];
+  adult?: boolean;
+  budget?: number;
+  revenue?: number;
+  productionCompanies?: any[];
+  videos?: any[];
 }
 
 export interface MovieCategory {

@@ -14,9 +14,13 @@ import { useTheme } from '../context/ThemeContext';
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
-  const { theme, themeMode, toggleTheme } = useTheme();
+  const { theme, themeMode, isDark, setThemeMode } = useTheme();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [autoplayEnabled, setAutoplayEnabled] = useState(false);
+
+  const handleThemeToggle = () => {
+    setThemeMode(isDark ? 'light' : 'dark');
+  };
 
   const handleClearCache = () => {
     Alert.alert(
@@ -61,15 +65,15 @@ export default function SettingsScreen() {
               <View style={styles.settingTextContainer}>
                 <CustomText style={styles.settingTitle}>Dark Mode</CustomText>
                 <CustomText style={styles.settingDescription}>
-                  {themeMode === 'dark' ? 'Dark theme enabled' : 'Light theme enabled'}
+                  {isDark ? 'Dark theme enabled' : 'Light theme enabled'}
                 </CustomText>
               </View>
             </View>
             <Switch
-              value={themeMode === 'dark'}
-              onValueChange={toggleTheme}
+              value={isDark}
+              onValueChange={handleThemeToggle}
               trackColor={{ false: theme.border, true: theme.primary }}
-              thumbColor={themeMode === 'dark' ? theme.accent : '#f4f3f4'}
+              thumbColor={isDark ? theme.accent : '#f4f3f4'}
             />
           </View>
         </View>
@@ -143,7 +147,7 @@ export default function SettingsScreen() {
 
           <TouchableOpacity style={styles.settingItem} onPress={handleClearCache}>
             <View style={styles.settingLeft}>
-              <View style={[styles.iconContainer, { backgroundColor: '#FFB142' }]}>
+              <View style={[styles.iconContainer, { backgroundColor: theme.error }]}>
                 <Feather name="trash-2" size={20} color="#fff" />
               </View>
               <View style={styles.settingTextContainer}>
@@ -158,7 +162,7 @@ export default function SettingsScreen() {
 
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingLeft}>
-              <View style={[styles.iconContainer, { backgroundColor: '#00D2A0' }]}>
+              <View style={[styles.iconContainer, { backgroundColor: theme.success }]}>
                 <Feather name="download" size={20} color="#fff" />
               </View>
               <View style={styles.settingTextContainer}>
@@ -188,7 +192,7 @@ export default function SettingsScreen() {
 
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingLeft}>
-              <View style={[styles.iconContainer, { backgroundColor: '#74B9FF' }]}>
+              <View style={[styles.iconContainer, { backgroundColor: theme.secondary }]}>
                 <Feather name="file-text" size={20} color="#fff" />
               </View>
               <View style={styles.settingTextContainer}>

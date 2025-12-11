@@ -1,248 +1,214 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { View, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import CustomText from './CustomText';
 import { Movie } from '../types/movie';
 import { favoritesStorage } from '../storage/favoritesStorage';
 import { useTheme } from '../context/ThemeContext';
 
-interface MovieCardProps {
-  movie: Movie;
-  onPress?: () => void;
-  onFavoriteChange?: (isFavorite: boolean) => void;
-  isTrending?: boolean;
-}
-
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 60) / 2;
 
-export default function MovieCard({ movie, onPress, onFavoriteChange, isTrending = false }: MovieCardProps) {
-  const { theme } = useTheme();
+interface MovieCardProps {
+  movie: Movie;
+  onPress?: () => void;
+}
+
+type RootStackParamList = {
+  MovieDetails: { movieId: number };
+};
+
+export default function MovieCard({ movie, onPress }: MovieCardProps) {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { theme: colors } = useTheme();
   const [isFavorite, setIsFavorite] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    checkFavoriteStatus();
+    checkFavorite();
   }, [movie.id]);
 
-  const checkFavoriteStatus = async () => {
-    const favStatus = await favoritesStorage.isFavorite(movie.id);
-    setIsFavorite(favStatus);
+  const checkFavorite = async () => {
+    const favorites = await favoritesStorage.getFavorites();
+    setIsFavorite(favorites.includes(movie.id));
   };
 
-  const handleFavoritePress = async () => {
-    if (loading) return;
-    
-    setLoading(true);
-    try {
-      const newStatus = await favoritesStorage.toggleFavorite(movie.id);
-      setIsFavorite(newStatus);
-      onFavoriteChange?.(newStatus);
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
-    } finally {
-      setLoading(false);
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+    } else {
+      navigation.navigate('MovieDetails', { movieId: movie.id });
     }
   };
 
-  return (
-    <TouchableOpacity
-      style={styles.cardContainer}
-      onPress={onPress}
-      activeOpacity={0.8}
-    >
-      <View style={[styles.card, { backgroundColor: theme.card }]}>
-        <View style={styles.posterContainer}>
-        <Image
-          source={{ uri: movie.poster }}
-          style={styles.poster}
-          resizeMode="cover"
-        />
-        <TouchableOpacity
-          style={styles.favoriteButton}
-          onPress={handleFavoritePress}
-          disabled={loading}
-        >
-          <Feather
-            name={isFavorite ? 'heart' : 'heart'}
-            size={20}
-            color={isFavorite ? theme.primary : '#fff'}
-            style={isFavorite ? styles.heartFilled : styles.heartOutline}
-          />
-        </TouchableOpacity>
-        <View style={styles.ratingBadge}>
-          <Feather name="star" size={12} color="#ffd700" />
-          <CustomText style={styles.ratingText}>{movie.rating.toFixed(1)}</CustomText>
-        </View>
-        {isTrending && (
-          <View style={[styles.trendingBadge, { backgroundColor: `rgba(${theme.primary === '#F97316' ? '249, 115, 22' : '255, 140, 0'}, 0.9)` }]}>
-            <Feather name="trending-up" size={18} color="#fff" />
-          </View>
-        )}
-      </View>
+  const toggleFavorite = async (e: any) => {
+    e.stopPropagation();
+    if (isFavorite) {
+      await favoritesStorage.removeFavorite(movie.id);
+    } else {
+      await favoritesStorage.addFavorite(movie.id);
+    }
+    setIsFavorite(!isFavorite);
+  };
 
-      <View style={styles.content}>
+  const getGenreText = () => {
+    const genreMap: { [key: number]: string } = {
+      28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy', 80: 'Crime',
+      99: 'Documentary', 18: 'Drama', 10751: 'Family', 14: 'Fantasy', 36: 'History',
+      27: 'Horror', 10402: 'Music', 9648: 'Mystery', 10749: 'Romance', 878: 'Sci-Fi',
+      10770: 'TV Movie', 53: 'Thriller', 10752: 'War', 37: 'Western'
+    };
+    const genre = movie.genreIds?.[0];
+    return genre ? genreMap[genre] || 'Movie' : 'Movie';
+  };
+
+  return (
+    <TouchableOpacity style={[styles.card, { backgroundColor: colors.card }]} onPress={handlePress}>
+      <Image
+        source={{ uri: movie.posterPath || 'https://via.placeholder.com/500x750?text=No+Image' }}
+        style={styles.poster}
+        resizeMode="cover"
+      />
+      
+      {movie.popularity && movie.popularity > 1000 && (
+        <View style={[styles.trendingBadge, { backgroundColor: colors.primary }]}>
+          <Feather name="trending-up" size={16} color="#fff" />
+        </View>
+      )}
+
+      <View style={styles.info}>
         <View style={styles.titleRow}>
-          <CustomText style={[styles.title, { color: theme.text }]} numberOfLines={1}>
+          <CustomText style={[styles.title, { color: colors.text }]} numberOfLines={1}>
             {movie.title}
           </CustomText>
-          <CustomText style={[styles.year, { color: theme.textSecondary }]}>{movie.releaseYear}</CustomText>
-        </View>
-        
-        <View style={styles.genresContainer}>
-          {movie.genres.slice(0, 2).map((genre, index) => (
-            <View key={index} style={styles.genreBadge}>
-              <CustomText style={[styles.genreText, { color: theme.primary }]}>{genre}</CustomText>
-            </View>
-          ))}
+          <CustomText style={[styles.year, { color: colors.textSecondary }]}>
+            {movie.releaseDate ? ` (${movie.releaseDate.split('-')[0]})` : ''}
+          </CustomText>
         </View>
 
-        <CustomText style={[styles.description, { color: theme.textSecondary }]} numberOfLines={2}>
-          {movie.description}
-        </CustomText>
+        <View style={styles.metaRow}>
+          <View style={[styles.genreBadge, { borderColor: colors.primary }]}>
+            <CustomText style={[styles.genreText, { color: colors.primary }]}>{getGenreText()}</CustomText>
+          </View>
+          <View style={[styles.languageBadge, { borderColor: colors.primary }]}>
+            <CustomText style={[styles.languageText, { color: colors.primary }]}>
+              {movie.originalLanguage?.toUpperCase()}
+            </CustomText>
+          </View>
+        </View>
 
         <View style={styles.footer}>
-          <View style={styles.languageBadge}>
-            <CustomText style={[styles.languageText, { color: theme.primary }]}>{movie.language}</CustomText>
+          <View style={styles.rating}>
+            <Feather name="star" size={14} color="#FFC107" />
+            <CustomText style={[styles.ratingText, { color: colors.text }]}>
+              {movie.voteAverage?.toFixed(1)}
+            </CustomText>
           </View>
-          <CustomText style={[styles.duration, { color: theme.textSecondary }]}>{movie.duration} min</CustomText>
+          <TouchableOpacity onPress={toggleFavorite} style={styles.favoriteButton}>
+            <Feather
+              name={isFavorite ? 'heart' : 'heart'}
+              size={20}
+              color={isFavorite ? colors.primary : colors.textSecondary}
+              fill={isFavorite ? colors.primary : 'none'}
+            />
+          </TouchableOpacity>
         </View>
-      </View>
       </View>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  cardContainer: {
-    width: CARD_WIDTH,
-    marginBottom: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
   card: {
+    width: CARD_WIDTH,
     borderRadius: 16,
     overflow: 'hidden',
+    marginBottom: 18,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+  },
+  poster: {
+    width: '100%',
+    height: 200,
   },
   trendingBadge: {
     position: 'absolute',
-    bottom: 8,
-    left: 8,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    top: 10,
+    right: 10,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: 5,
+    elevation: 4,
   },
-  trendingText: {
-    color: '#fff',
-    fontSize: 9,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  posterContainer: {
-    width: '100%',
-    height: 160,
-    position: 'relative',
-  },
-  poster: {
-    width: '100%',
-    height: '100%',
-  },
-  favoriteButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    borderRadius: 20,
-    padding: 8,
-  },
-  heartFilled: {
-    // Filled heart
-  },
-  heartOutline: {
-    // Outline heart
-  },
-  ratingBadge: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
-  },
-  ratingText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  content: {
-    padding: 12,
+  info: {
+    padding: 14,
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-    gap: 4,
+    marginBottom: 10,
   },
   title: {
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '700',
     flex: 1,
+    lineHeight: 20,
   },
   year: {
-    fontSize: 11,
-    flexShrink: 0,
+    fontSize: 12,
   },
-  genresContainer: {
+  metaRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    gap: 8,
     marginBottom: 8,
-    gap: 4,
   },
   genreBadge: {
-    paddingHorizontal: 4,
-    paddingVertical: 2,
+    borderWidth: 1.5,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
   genreText: {
-    fontSize: 10,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
-  description: {
-    fontSize: 12,
-    lineHeight: 16,
-    marginBottom: 8,
+  languageBadge: {
+    borderWidth: 1.5,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  languageText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  languageBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+  rating: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
   },
-  languageText: {
-    fontSize: 10,
-    fontWeight: '600',
+  ratingText: {
+    fontSize: 13,
+    fontWeight: '700',
   },
-  duration: {
-    fontSize: 11,
+  favoriteButton: {
+    padding: 6,
   },
 });

@@ -70,17 +70,74 @@ export default function MoviesScreen() {
     setRefreshing(false);
   };
 
+  const languageCodeMap: { [key: string]: string } = {
+    'English': 'en',
+    'Tamil': 'ta',
+    'Hindi': 'hi',
+    'Sinhala': 'si',
+    'Malayalam': 'ml',
+    'Telugu': 'te',
+    'Kannada': 'kn',
+    'Bengali': 'bn',
+    'Marathi': 'mr',
+    'Gujarati': 'gu',
+    'Punjabi': 'pa',
+    'Spanish': 'es',
+    'French': 'fr',
+    'German': 'de',
+    'Italian': 'it',
+    'Japanese': 'ja',
+    'Korean': 'ko',
+    'Chinese': 'zh',
+    'Arabic': 'ar',
+    'Russian': 'ru',
+    'Portuguese': 'pt',
+    'Turkish': 'tr',
+    'Thai': 'th',
+    'Vietnamese': 'vi',
+    'Indonesian': 'id',
+    'Dutch': 'nl',
+    'Swedish': 'sv',
+    'Polish': 'pl',
+    'Greek': 'el',
+    'Hebrew': 'he',
+    'Persian': 'fa',
+  };
+
+  const genreIdMap: { [key: string]: number } = {
+    'Action': 28,
+    'Adventure': 12,
+    'Animation': 16,
+    'Comedy': 35,
+    'Crime': 80,
+    'Documentary': 99,
+    'Drama': 18,
+    'Family': 10751,
+    'Fantasy': 14,
+    'History': 36,
+    'Horror': 27,
+    'Music': 10402,
+    'Mystery': 9648,
+    'Romance': 10749,
+    'Sci-Fi': 878,
+    'Thriller': 53,
+    'War': 10752,
+    'Western': 37,
+  };
+
   const filterMovies = async () => {
     let result = [...movies];
 
     // Filter by language
     if (selectedLanguage) {
-      result = result.filter((movie) => movie.language === selectedLanguage);
+      const langCode = languageCodeMap[selectedLanguage];
+      result = result.filter((movie) => movie.originalLanguage === langCode);
     }
 
     // Filter by genre
     if (selectedGenre) {
-      result = result.filter((movie) => movie.genres.includes(selectedGenre as Genre));
+      const genreId = genreIdMap[selectedGenre];
+      result = result.filter((movie) => movie.genreIds?.includes(genreId));
     }
 
     // Filter by search query
@@ -89,9 +146,7 @@ export default function MoviesScreen() {
       result = result.filter(
         (movie) =>
           movie.title.toLowerCase().includes(lowerQuery) ||
-          movie.cast.some((actor) => actor.toLowerCase().includes(lowerQuery)) ||
-          movie.genres.some((genre) => genre.toLowerCase().includes(lowerQuery)) ||
-          movie.director.toLowerCase().includes(lowerQuery)
+          movie.overview?.toLowerCase().includes(lowerQuery)
       );
     }
 
@@ -100,10 +155,12 @@ export default function MoviesScreen() {
 
   const handleLanguagePress = (language: string) => {
     setSelectedLanguage(selectedLanguage === language ? null : language);
+    setShowLanguageDropdown(false);
   };
 
   const handleGenrePress = (genre: string) => {
     setSelectedGenre(selectedGenre === genre ? null : genre);
+    setShowGenreDropdown(false);
   };
 
   const clearFilters = () => {
@@ -380,10 +437,7 @@ export default function MoviesScreen() {
                 <TouchableOpacity
                   key={language}
                   style={styles.dropdownItem}
-                  onPress={() => {
-                    handleLanguagePress(language);
-                    setShowLanguageDropdown(false);
-                  }}
+                  onPress={() => handleLanguagePress(language)}
                 >
                   <CustomText style={[styles.dropdownItemText, selectedLanguage === language && styles.dropdownItemTextActive]}>
                     {language}
@@ -432,10 +486,7 @@ export default function MoviesScreen() {
                 <TouchableOpacity
                   key={genre}
                   style={styles.dropdownItem}
-                  onPress={() => {
-                    handleGenrePress(genre);
-                    setShowGenreDropdown(false);
-                  }}
+                  onPress={() => handleGenrePress(genre)}
                 >
                   <CustomText style={[styles.dropdownItemText, selectedGenre === genre && styles.dropdownItemTextActive]}>
                     {genre}

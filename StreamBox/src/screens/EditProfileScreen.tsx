@@ -299,7 +299,7 @@ export default function EditProfileScreen() {
         {/* Profile Image */}
         <View style={styles.imageSection}>
           <Image
-            source={{ uri: user?.image || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&q=80' }}
+            source={{ uri: user?.image || 'https://img.freepik.com/premium-vector/young-man-face-circle-vector-illustration-flat-style_1142-63077.jpg?w=2000' }}
             style={styles.profileImage}
           />
           <TouchableOpacity 

@@ -1,36 +1,35 @@
 import React from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, TextInput, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 interface SearchBarProps {
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
-  onClear?: () => void;
 }
 
-export default function SearchBar({
-  value,
-  onChangeText,
-  placeholder = 'Search movies, actors, genres...',
-  onClear,
-}: SearchBarProps) {
+export default function SearchBar({ value, onChangeText, placeholder = 'Search...' }: SearchBarProps) {
+  const { theme: colors } = useTheme();
+
   return (
-    <View style={styles.container}>
-      <Feather name="search" size={20} color="#6B7280" style={styles.searchIcon} />
+    <View style={[styles.container, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <Feather name="search" size={20} color={colors.textSecondary} style={styles.icon} />
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: colors.text }]}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor="#9CA3AF"
-        autoCapitalize="none"
-        autoCorrect={false}
+        placeholderTextColor={colors.textSecondary}
       />
       {value.length > 0 && (
-        <TouchableOpacity onPress={onClear} style={styles.clearButton}>
-          <Feather name="x" size={20} color="#6B7280" />
-        </TouchableOpacity>
+        <Feather 
+          name="x" 
+          size={20} 
+          color={colors.textSecondary} 
+          style={styles.clearIcon}
+          onPress={() => onChangeText('')}
+        />
       )}
     </View>
   );
@@ -40,23 +39,19 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
     height: 50,
+    borderWidth: 1,
   },
-  searchIcon: {
+  icon: {
     marginRight: 12,
   },
   input: {
     flex: 1,
-    color: '#111827',
     fontSize: 16,
-    height: '100%',
   },
-  clearButton: {
-    padding: 4,
+  clearIcon: {
+    marginLeft: 8,
   },
 });

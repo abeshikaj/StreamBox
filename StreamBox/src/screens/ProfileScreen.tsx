@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -6,12 +6,11 @@ import {
   Image,
   TouchableOpacity,
   Alert,
-  FlatList,
   Dimensions,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import CustomText from '../components/CustomText';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -24,21 +23,13 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'EditProfile
 
 const { width } = Dimensions.get('window');
 
-const cinemaImages = [
-  'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&q=80',
-  'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&q=80',
-  'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=800&q=80',
-];
-
 export default function ProfileScreen() {
-  const { theme: colors } = useTheme();
+  const { theme: colors, isDark } = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const [user, setUser] = useState<User | null>(null);
   const [favoritesCount, setFavoritesCount] = useState(0);
   const [ratingsCount, setRatingsCount] = useState(0);
   const [notificationCount, setNotificationCount] = useState(3);
-  const [activeSlide, setActiveSlide] = useState(0);
-  const carouselRef = useRef<FlatList>(null);
 
   useEffect(() => {
     loadUserData();
@@ -50,22 +41,6 @@ export default function ProfileScreen() {
     });
     return unsubscribe;
   }, [navigation]);
-
-  // Auto-scroll carousel
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveSlide((prevIndex) => {
-        const nextIndex = (prevIndex + 1) % cinemaImages.length;
-        carouselRef.current?.scrollToIndex({
-          index: nextIndex,
-          animated: true,
-        });
-        return nextIndex;
-      });
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   const loadUserData = async () => {
     try {
@@ -92,11 +67,19 @@ export default function ProfileScreen() {
           text: 'Logout',
           style: 'destructive',
           onPress: async () => {
-            await authStorage.logoutUser();
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'Auth' as never }],
-            });
+            try {
+              await authStorage.logoutUser();
+              // Force navigation to Auth screen
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [{ name: 'Auth' }],
+                })
+              );
+            } catch (error) {
+              console.error('Logout error:', error);
+              Alert.alert('Error', 'Failed to logout. Please try again.');
+            }
           },
         },
       ]
@@ -160,195 +143,273 @@ export default function ProfileScreen() {
       textAlign: 'center',
       marginTop: 100,
     },
-    heroSection: {
-      height: 320,
-      position: 'relative',
-      borderBottomLeftRadius: 30,
-      borderBottomRightRadius: 30,
-      overflow: 'hidden',
-    },
-    carouselSlide: {
-      width: width,
-      height: 320,
-      backgroundColor: '#1F2937',
-    },
-    carouselImage: {
-      width: '100%',
-      height: '100%',
-    },
-    carouselOverlay: {
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    },
-    headerContent: {
-      ...StyleSheet.absoluteFillObject,
-      paddingTop: 60,
-      paddingBottom: 20,
+    topSection: {
+      backgroundColor: colors.background,
+      paddingTop: 50,
       paddingHorizontal: 20,
+      paddingBottom: 20,
     },
-    headerActions: {
+    topBar: {
       flexDirection: 'row',
-      justifyContent: 'flex-end',
-      gap: 10,
-      marginBottom: 30,
-      zIndex: 1,
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 24,
     },
-    actionButton: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    pageTitle: {
+      fontSize: 32,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    topActions: {
+      flexDirection: 'row',
+      gap: 10,
+    },
+    actionBtn: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: colors.card,
       justifyContent: 'center',
       alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
     },
-    notificationDot: {
+    notificationBadge: {
       position: 'absolute',
       top: 6,
       right: 6,
       width: 8,
       height: 8,
       borderRadius: 4,
-      backgroundColor: '#fff',
+      backgroundColor: '#FF3B30',
+      borderWidth: 1.5,
+      borderColor: colors.card,
     },
-    profileContainer: {
+    profileCard: {
+      backgroundColor: colors.card,
+      borderRadius: 28,
+      padding: 24,
+      marginBottom: 24,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: isDark ? 0.4 : 0.08,
+      shadowRadius: 12,
+      elevation: 6,
+      borderWidth: isDark ? 0 : 1,
+      borderColor: colors.border,
+    },
+    profileHeader: {
+      flexDirection: 'row',
       alignItems: 'center',
-      zIndex: 1,
+      marginBottom: 20,
     },
-    avatarContainer: {
+    avatarSection: {
       position: 'relative',
-      marginBottom: 16,
+      marginRight: 18,
     },
     avatar: {
-      width: 100,
-      height: 100,
-      borderRadius: 50,
+      width: 90,
+      height: 90,
+      borderRadius: 45,
       backgroundColor: colors.surface,
-      borderWidth: 4,
-      borderColor: '#fff',
+      borderWidth: 3,
+      borderColor: colors.primary,
     },
     defaultAvatar: {
       justifyContent: 'center',
       alignItems: 'center',
     },
-    editButton: {
+    editAvatarBtn: {
       position: 'absolute',
-      bottom: 0,
-      right: 0,
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      backgroundColor: colors.accent,
+      bottom: -2,
+      right: -2,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.primary,
       justifyContent: 'center',
       alignItems: 'center',
       borderWidth: 3,
-      borderColor: '#fff',
+      borderColor: colors.card,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.4,
+      shadowRadius: 4,
+      elevation: 4,
+    },
+    userInfo: {
+      flex: 1,
+      justifyContent: 'center',
     },
     userName: {
-      fontSize: 24,
+      fontSize: 22,
       fontWeight: 'bold',
-      color: '#fff',
+      color: colors.text,
       marginBottom: 4,
     },
     userEmail: {
       fontSize: 14,
-      color: 'rgba(255, 255, 255, 0.9)',
+      color: colors.textSecondary,
+      marginBottom: 12,
+    },
+    editProfileBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: isDark ? colors.surface : `${colors.primary}15`,
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderRadius: 20,
+      gap: 6,
+      alignSelf: 'flex-start',
+    },
+    editProfileText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.primary,
     },
     content: {
-      flex: 1,
-      marginTop: -20,
-    },
-    statsGrid: {
-      flexDirection: 'row',
       paddingHorizontal: 20,
-      gap: 12,
-      marginBottom: 24,
     },
-    statBox: {
+    statsRow: {
+      flexDirection: 'row',
+      gap: 12,
+      marginBottom: 20,
+    },
+    statCard: {
       flex: 1,
       backgroundColor: colors.card,
-      borderRadius: 16,
-      padding: 20,
+      borderRadius: 20,
+      padding: 18,
       alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.06,
+      shadowRadius: 8,
+      elevation: 4,
+      borderWidth: 1,
+      borderColor: isDark ? 'transparent' : colors.border,
     },
-    statIconWrapper: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      backgroundColor: `${colors.primary}15`,
+    statIcon: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
       justifyContent: 'center',
       alignItems: 'center',
       marginBottom: 12,
     },
     statValue: {
-      fontSize: 28,
+      fontSize: 24,
       fontWeight: 'bold',
       color: colors.text,
       marginBottom: 4,
     },
-    statTitle: {
-      fontSize: 13,
+    statName: {
+      fontSize: 12,
       color: colors.textSecondary,
-    },
-    section: {
-      paddingHorizontal: 20,
-      marginBottom: 20,
+      fontWeight: '500',
     },
     sectionTitle: {
       fontSize: 18,
       fontWeight: 'bold',
       color: colors.text,
-      marginBottom: 16,
+      marginBottom: 14,
+      marginTop: 8,
     },
-    actionsGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 12,
-    },
-    actionCard: {
-      width: '48%',
+    menuList: {
       backgroundColor: colors.card,
-      borderRadius: 16,
-      padding: 20,
-      alignItems: 'center',
+      borderRadius: 20,
+      marginBottom: 16,
+      overflow: 'hidden',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.3 : 0.05,
+      shadowRadius: 6,
+      elevation: 3,
+      borderWidth: 1,
+      borderColor: isDark ? 'transparent' : colors.border,
     },
-    actionIcon: {
-      width: 56,
-      height: 56,
-      borderRadius: 28,
+    menuButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 16,
+      backgroundColor: colors.card,
+    },
+    menuButtonPressed: {
+      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
+    },
+    menuIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
       justifyContent: 'center',
       alignItems: 'center',
-      marginBottom: 12,
+      marginRight: 14,
     },
-    actionLabel: {
-      fontSize: 13,
+    menuText: {
+      flex: 1,
+    },
+    menuLabel: {
+      fontSize: 16,
       fontWeight: '600',
       color: colors.text,
-      textAlign: 'center',
+      marginBottom: 3,
     },
-    carouselDots: {
+    menuDesc: {
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    menuArrow: {
+      marginLeft: 8,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: colors.border,
+      marginLeft: 74,
+    },
+    logoutButton: {
+      backgroundColor: isDark ? colors.card : `${colors.error}10`,
+      borderRadius: 20,
+      marginBottom: 20,
+      overflow: 'hidden',
+      shadowColor: colors.error,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+      borderWidth: 1.5,
+      borderColor: `${colors.error}30`,
+    },
+    logoutBtn: {
       flexDirection: 'row',
-      justifyContent: 'center',
       alignItems: 'center',
-      gap: 6,
-      marginTop: 12,
+      justifyContent: 'center',
+      padding: 18,
+      gap: 10,
     },
-    dot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: 'rgba(255, 255, 255, 0.4)',
-    },
-    activeDot: {
-      width: 24,
-      backgroundColor: '#fff',
+    logoutText: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: colors.error,
     },
     footer: {
       alignItems: 'center',
-      paddingVertical: 30,
+      paddingVertical: 32,
+      paddingBottom: 40,
     },
-    footerText: {
+    appVersion: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      marginBottom: 4,
+    },
+    appName: {
       fontSize: 12,
       color: colors.textSecondary,
+      opacity: 0.7,
     },
   });
 
@@ -362,169 +423,180 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Carousel Header */}
-      <View style={styles.heroSection}>
-        <FlatList
-          ref={carouselRef}
-          data={cinemaImages}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={(event) => {
-            const slideIndex = Math.round(
-              event.nativeEvent.contentOffset.x / width
-            );
-            setActiveSlide(slideIndex);
-          }}
-          renderItem={({ item }) => (
-            <View style={styles.carouselSlide}>
-              <Image
-                source={{ uri: item }}
-                style={styles.carouselImage}
-                resizeMode="cover"
-              />
-              <View style={styles.carouselOverlay} />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Top Bar */}
+        <View style={styles.topSection}>
+          <View style={styles.topBar}>
+            <CustomText style={styles.pageTitle}>Profile</CustomText>
+            <View style={styles.topActions}>
+              <TouchableOpacity 
+                style={styles.actionBtn}
+                onPress={() => navigation.navigate('Notifications' as never)}
+              >
+                <Feather name="bell" size={20} color={colors.text} />
+                {notificationCount > 0 && (
+                  <View style={styles.notificationBadge} />
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.actionBtn}
+                onPress={() => navigation.navigate('Settings' as never)}
+              >
+                <Feather name="settings" size={20} color={colors.text} />
+              </TouchableOpacity>
             </View>
-          )}
-          keyExtractor={(item, index) => index.toString()}
-        />
-
-        <View style={styles.headerContent}>
-          <View style={styles.headerActions}>
-            <TouchableOpacity 
-              style={styles.actionButton}
-              onPress={() => navigation.navigate('Settings' as never)}
-            >
-              <Feather name="settings" size={20} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.actionButton}
-              onPress={() => navigation.navigate('Notifications' as never)}
-            >
-              <Feather name="bell" size={20} color="#fff" />
-              {notificationCount > 0 && (
-                <View style={styles.notificationDot} />
-              )}
-            </TouchableOpacity>
           </View>
 
-          <View style={styles.profileContainer}>
-            <TouchableOpacity 
-              style={styles.avatarContainer}
-              onPress={() => navigation.navigate('EditProfile')}
-            >
-              {user.image ? (
+          {/* Profile Card */}
+          <View style={styles.profileCard}>
+            <View style={styles.profileHeader}>
+              <View style={styles.avatarSection}>
                 <Image
-                  source={{ uri: user.image }}
+                  source={{ uri: user.image || 'https://img.freepik.com/premium-vector/young-man-face-circle-vector-illustration-flat-style_1142-63077.jpg?w=2000' }}
                   style={styles.avatar}
                 />
-              ) : (
-                <View style={[styles.avatar, styles.defaultAvatar]}>
-                  <Feather name="user" size={50} color={colors.primary} />
+                <TouchableOpacity 
+                  style={styles.editAvatarBtn}
+                  onPress={() => navigation.navigate('EditProfile')}
+                >
+                  <Feather name="camera" size={14} color="#fff" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.userInfo}>
+                <CustomText style={styles.userName}>
+                  {user.firstName} {user.lastName}
+                </CustomText>
+                <CustomText style={styles.userEmail}>{user.email}</CustomText>
+                <TouchableOpacity 
+                  style={styles.editProfileBtn}
+                  onPress={() => navigation.navigate('EditProfile')}
+                >
+                  <Feather name="edit-3" size={14} color={colors.primary} />
+                  <CustomText style={styles.editProfileText}>Edit Profile</CustomText>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Stats Row */}
+            <View style={styles.statsRow}>
+              <TouchableOpacity 
+                style={styles.statCard}
+                onPress={() => navigation.navigate('FavoritesTab' as never)}
+              >
+                <View style={[styles.statIcon, { backgroundColor: `${colors.primary}20` }]}>
+                  <Feather name="heart" size={24} color={colors.primary} />
                 </View>
-              )}
-              <View style={styles.editButton}>
-                <Feather name="camera" size={16} color="#fff" />
-              </View>
-            </TouchableOpacity>
+                <CustomText style={styles.statValue}>{favoritesCount}</CustomText>
+                <CustomText style={styles.statName}>Favorites</CustomText>
+              </TouchableOpacity>
 
-            <CustomText style={styles.userName}>
-              {user.firstName} {user.lastName}
-            </CustomText>
-            <CustomText style={styles.userEmail}>{user.email}</CustomText>
-          </View>
-
-          <View style={styles.carouselDots}>
-            {cinemaImages.map((_, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.dot,
-                  index === activeSlide && styles.activeDot,
-                ]}
-              />
-            ))}
+              <TouchableOpacity 
+                style={styles.statCard}
+                onPress={() => navigation.navigate('RatedMovies' as never)}
+              >
+                <View style={[styles.statIcon, { backgroundColor: `${colors.secondary}20` }]}>
+                  <Feather name="star" size={24} color={colors.secondary} />
+                </View>
+                <CustomText style={styles.statValue}>{ratingsCount}</CustomText>
+                <CustomText style={styles.statName}>Rated</CustomText>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
 
-      <ScrollView 
-        style={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Stats Cards */}
-        <View style={styles.statsGrid}>
-          <View style={styles.statBox}>
-            <View style={styles.statIconWrapper}>
-              <Feather name="heart" size={24} color={colors.primary} />
-            </View>
-            <CustomText style={styles.statValue}>{favoritesCount}</CustomText>
-            <CustomText style={styles.statTitle}>Favorites</CustomText>
-          </View>
-
-          <TouchableOpacity 
-            style={styles.statBox}
-            onPress={() => navigation.navigate('RatedMovies' as never)}
-          >
-            <View style={styles.statIconWrapper}>
-              <Feather name="star" size={24} color={colors.primary} />
-            </View>
-            <CustomText style={styles.statValue}>{ratingsCount}</CustomText>
-            <CustomText style={styles.statTitle}>Ratings</CustomText>
-          </TouchableOpacity>
-        </View>
-
-        {/* Quick Actions */}
-        <View style={styles.section}>
-          <CustomText style={styles.sectionTitle}>Quick Actions</CustomText>
-          
-          <View style={styles.actionsGrid}>
+        {/* Content */}
+        <View style={styles.content}>
+          {/* Account Section */}
+          <CustomText style={styles.sectionTitle}>Account</CustomText>
+          <View style={styles.menuList}>
             <TouchableOpacity 
-              style={styles.actionCard}
-              onPress={() => navigation.navigate('EditProfile')}
+              style={styles.menuButton}
+              onPress={() => navigation.navigate('FavoritesTab' as never)}
+              activeOpacity={0.7}
             >
-              <View style={[styles.actionIcon, { backgroundColor: `${colors.primary}20` }]}>
-                <Feather name="edit" size={24} color={colors.primary} />
+              <View style={[styles.menuIcon, { backgroundColor: `${colors.primary}20` }]}>
+                <Feather name="heart" size={22} color={colors.primary} />
               </View>
-              <CustomText style={styles.actionLabel}>Edit Profile</CustomText>
+              <View style={styles.menuText}>
+                <CustomText style={styles.menuLabel}>My Favorites</CustomText>
+                <CustomText style={styles.menuDesc}>{favoritesCount} movies saved</CustomText>
+              </View>
+              <Feather name="chevron-right" size={20} color={colors.textSecondary} style={styles.menuArrow} />
             </TouchableOpacity>
 
+            <View style={styles.divider} />
+
             <TouchableOpacity 
-              style={styles.actionCard}
+              style={styles.menuButton}
+              onPress={() => navigation.navigate('RatedMovies' as never)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.menuIcon, { backgroundColor: `${colors.secondary}20` }]}>
+                <Feather name="star" size={22} color={colors.secondary} />
+              </View>
+              <View style={styles.menuText}>
+                <CustomText style={styles.menuLabel}>Rated Movies</CustomText>
+                <CustomText style={styles.menuDesc}>{ratingsCount} ratings given</CustomText>
+              </View>
+              <Feather name="chevron-right" size={20} color={colors.textSecondary} style={styles.menuArrow} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Data Management */}
+          <CustomText style={styles.sectionTitle}>Data Management</CustomText>
+          <View style={styles.menuList}>
+            <TouchableOpacity 
+              style={styles.menuButton}
               onPress={handleClearFavorites}
               disabled={favoritesCount === 0}
+              activeOpacity={0.7}
             >
-              <View style={[styles.actionIcon, { backgroundColor: `${colors.secondary}20` }]}>
-                <Feather name="trash-2" size={24} color={colors.secondary} />
+              <View style={[styles.menuIcon, { backgroundColor: `${colors.accent}20` }]}>
+                <Feather name="trash-2" size={22} color={colors.accent} />
               </View>
-              <CustomText style={styles.actionLabel}>Clear Favorites</CustomText>
+              <View style={styles.menuText}>
+                <CustomText style={styles.menuLabel}>Clear Favorites</CustomText>
+                <CustomText style={styles.menuDesc}>Remove all saved movies</CustomText>
+              </View>
+              <Feather name="chevron-right" size={20} color={colors.textSecondary} style={styles.menuArrow} />
             </TouchableOpacity>
 
+            <View style={styles.divider} />
+
             <TouchableOpacity 
-              style={styles.actionCard}
+              style={styles.menuButton}
               onPress={handleClearRatings}
               disabled={ratingsCount === 0}
+              activeOpacity={0.7}
             >
-              <View style={[styles.actionIcon, { backgroundColor: `${colors.accent}20` }]}>
-                <Feather name="x-circle" size={24} color={colors.accent} />
+              <View style={[styles.menuIcon, { backgroundColor: `${colors.accent}20` }]}>
+                <Feather name="x-circle" size={22} color={colors.accent} />
               </View>
-              <CustomText style={styles.actionLabel}>Clear Ratings</CustomText>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.actionCard}
-              onPress={handleLogout}
-            >
-              <View style={[styles.actionIcon, { backgroundColor: `${colors.error}20` }]}>
-                <Feather name="log-out" size={24} color={colors.error} />
+              <View style={styles.menuText}>
+                <CustomText style={styles.menuLabel}>Clear Ratings</CustomText>
+                <CustomText style={styles.menuDesc}>Remove all your ratings</CustomText>
               </View>
-              <CustomText style={styles.actionLabel}>Logout</CustomText>
+              <Feather name="chevron-right" size={20} color={colors.textSecondary} style={styles.menuArrow} />
             </TouchableOpacity>
           </View>
-        </View>
 
-        <View style={styles.footer}>
-          <CustomText style={styles.footerText}>StreamBox v1.0.0</CustomText>
+          {/* Logout */}
+          <View style={styles.logoutButton}>
+            <TouchableOpacity 
+              style={styles.logoutBtn}
+              onPress={handleLogout}
+              activeOpacity={0.7}
+            >
+              <Feather name="log-out" size={24} color={colors.error} />
+              <CustomText style={styles.logoutText}>Logout</CustomText>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.footer}>
+            <CustomText style={styles.appVersion}>Version 1.0.0</CustomText>
+            <CustomText style={styles.appName}>StreamBox © 2025</CustomText>
+          </View>
         </View>
       </ScrollView>
     </View>

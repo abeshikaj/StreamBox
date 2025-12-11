@@ -85,7 +85,7 @@ export default function RatedMoviesScreen() {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(({ movie }) =>
         movie.title.toLowerCase().includes(query) ||
-        movie.genres.some(genre => genre.toLowerCase().includes(query))
+        movie.genres?.some(genre => genre.toLowerCase().includes(query))
       );
     }
 

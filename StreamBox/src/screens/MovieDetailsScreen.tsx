@@ -130,12 +130,19 @@ export default function MovieDetailsScreen() {
       zIndex: 10,
     },
     headerButton: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
       justifyContent: 'center',
       alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 5,
+      borderWidth: 1,
+      borderColor: 'rgba(255, 255, 255, 0.1)',
     },
     poster: {
       width: width,
@@ -296,33 +303,49 @@ export default function MovieDetailsScreen() {
       {/* Header with Back Button */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
-          <Feather name="arrow-left" size={24} color={colors.text} />
+          <Feather name="arrow-left" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.headerButton} onPress={handleFavoriteToggle}>
-          <Feather name="heart" size={24} color={isFavorite ? colors.accent : colors.text} />
+          <Feather name="heart" size={24} color={isFavorite ? colors.primary : '#FFFFFF'} fill={isFavorite ? colors.primary : 'none'} />
         </TouchableOpacity>
       </View>
 
       {/* Poster Image */}
-      <Image source={{ uri: movie.poster }} style={styles.poster} resizeMode="cover" />
+      <Image 
+        source={{ uri: movie.backdropPath || movie.posterPath || movie.poster || 'https://via.placeholder.com/500x750?text=No+Image' }} 
+        style={styles.poster} 
+        resizeMode="cover" 
+      />
 
       {/* Movie Details */}
       <View style={styles.content}>
         {/* Title and Year */}
         <CustomText style={styles.title}>{movie.title}</CustomText>
         <View style={styles.metaRow}>
-          <CustomText style={styles.year}>{movie.releaseYear}</CustomText>
-          <View style={styles.dot} />
-          <CustomText style={styles.duration}>{movie.duration} min</CustomText>
-          <View style={styles.dot} />
-          <CustomText style={styles.language}>{movie.language}</CustomText>
+          {(movie.releaseYear || movie.releaseDate) && (
+            <>
+              <CustomText style={styles.year}>
+                {movie.releaseYear || movie.releaseDate?.split('-')[0] || 'N/A'}
+              </CustomText>
+              <View style={styles.dot} />
+            </>
+          )}
+          {(movie.duration || movie.runtime) && (
+            <>
+              <CustomText style={styles.duration}>{movie.runtime || movie.duration} min</CustomText>
+              <View style={styles.dot} />
+            </>
+          )}
+          <CustomText style={styles.language}>
+            {movie.language || movie.originalLanguage?.toUpperCase() || 'N/A'}
+          </CustomText>
         </View>
 
         {/* Rating */}
         <View style={styles.ratingContainer}>
           <View style={styles.tmdbRating}>
             <Feather name="star" size={20} color={colors.primary} />
-            <CustomText style={styles.ratingText}>{movie.rating.toFixed(1)}/10</CustomText>
+            <CustomText style={styles.ratingText}>{movie.voteAverage ? movie.voteAverage.toFixed(1) : '0.0'}/10</CustomText>
             <CustomText style={styles.ratingLabel}>TMDB Rating</CustomText>
           </View>
         </View>
@@ -357,9 +380,11 @@ export default function MovieDetailsScreen() {
         <View style={styles.genresSection}>
           <CustomText style={styles.sectionTitle}>Genres</CustomText>
           <View style={styles.genresContainer}>
-            {movie.genres.map((genre, index) => (
+            {movie.genres?.map((genre: any, index) => (
               <View key={index} style={styles.genreChip}>
-                <CustomText style={styles.genreText}>{genre}</CustomText>
+                <CustomText style={styles.genreText}>
+                  {typeof genre === 'string' ? genre : genre?.name || 'Unknown'}
+                </CustomText>
               </View>
             ))}
           </View>
@@ -368,24 +393,28 @@ export default function MovieDetailsScreen() {
         {/* Description */}
         <View style={styles.section}>
           <CustomText style={styles.sectionTitle}>Overview</CustomText>
-          <CustomText style={styles.description}>{movie.description}</CustomText>
+          <CustomText style={styles.description}>{movie.overview || movie.description || 'No overview available.'}</CustomText>
         </View>
 
         {/* Director */}
-        <View style={styles.section}>
-          <CustomText style={styles.sectionTitle}>Director</CustomText>
-          <CustomText style={styles.infoText}>{movie.director}</CustomText>
-        </View>
+        {movie.director && (
+          <View style={styles.section}>
+            <CustomText style={styles.sectionTitle}>Director</CustomText>
+            <CustomText style={styles.infoText}>{movie.director}</CustomText>
+          </View>
+        )}
 
         {/* Cast */}
-        <View style={styles.section}>
-          <CustomText style={styles.sectionTitle}>Cast</CustomText>
-          {movie.cast.map((actor, index) => (
-            <CustomText key={index} style={styles.castText}>
-              • {actor}
-            </CustomText>
-          ))}
-        </View>
+        {movie.cast && movie.cast.length > 0 && (
+          <View style={styles.section}>
+            <CustomText style={styles.sectionTitle}>Cast</CustomText>
+            {movie.cast.map((actor: any, index) => (
+              <CustomText key={index} style={styles.castText}>
+                • {typeof actor === 'string' ? actor : actor?.name || 'Unknown'}
+              </CustomText>
+            ))}
+          </View>
+        )}
       </View>
     </ScrollView>
   );

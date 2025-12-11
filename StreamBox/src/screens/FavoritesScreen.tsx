@@ -52,9 +52,9 @@ export default function FavoritesScreen() {
     const filtered = favoriteMovies.filter(
       (movie) =>
         movie.title.toLowerCase().includes(lowerQuery) ||
-        movie.cast.some((actor) => actor.toLowerCase().includes(lowerQuery)) ||
-        movie.genres.some((genre) => genre.toLowerCase().includes(lowerQuery)) ||
-        movie.director.toLowerCase().includes(lowerQuery)
+        movie.cast?.some((actor) => actor.toLowerCase().includes(lowerQuery)) ||
+        movie.genres?.some((genre) => genre.toLowerCase().includes(lowerQuery)) ||
+        movie.director?.toLowerCase().includes(lowerQuery)
     );
     setFilteredMovies(filtered);
   };
@@ -75,7 +75,7 @@ export default function FavoritesScreen() {
         movieApi.getAllMovies(),
         movieApi.getTrendingMovies()
       ]);
-      const favorites = allMovies.filter((movie) => favoriteIds.includes(movie.id));
+      const favorites = allMovies.filter((movie: Movie) => favoriteIds.includes(movie.id));
       setFavoriteMovies(favorites);
       setFilteredMovies(favorites);
       setTrendingMovies(trending);

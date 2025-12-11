@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useColorScheme } from 'react-native';
 
 const THEME_KEY = '@streambox_theme';
 
-export type ThemeMode = 'light' | 'dark';
+export type ThemeMode = 'light' | 'dark' | 'system';
 
 interface Theme {
   primary: string;
@@ -17,66 +18,74 @@ interface Theme {
   border: string;
   error: string;
   success: string;
-  shadow: string;
 }
-
-const lightTheme: Theme = {
-  primary: '#F97316',
-  secondary: '#FB923C',
-  accent: '#EA580C',
-  background: '#F9FAFB',
-  surface: '#FFFFFF',
-  card: '#FFFFFF',
-  text: '#111827',
-  textSecondary: '#6B7280',
-  border: '#E5E7EB',
-  error: '#EF4444',
-  success: '#10B981',
-  shadow: '#000000',
-};
-
-const darkTheme: Theme = {
-  primary: '#FF8C00',
-  secondary: '#FFA500',
-  accent: '#FFB84D',
-  background: '#111827',
-  surface: '#1F2937',
-  card: '#374151',
-  text: '#F9FAFB',
-  textSecondary: '#D1D5DB',
-  border: '#4B5563',
-  error: '#F87171',
-  success: '#34D399',
-  shadow: '#000000',
-};
 
 interface ThemeContextType {
   theme: Theme;
   themeMode: ThemeMode;
-  toggleTheme: () => void;
-  setThemeMode: (mode: ThemeMode) => void;
+  isDark: boolean;
+  setThemeMode: (mode: ThemeMode) => Promise<void>;
 }
+
+const lightTheme: Theme = {
+  primary: '#FF8C00',        // Dark Orange
+  secondary: '#FFA500',      // Orange
+  accent: '#FF7F00',         // Vibrant Orange
+  background: '#F5F5F5',     // Light gray
+  surface: '#FFFFFF',        // White
+  card: '#FAFAFA',           // Off-white
+  text: '#2F2F2F',           // Dark gray
+  textSecondary: '#6B7280',  // Medium gray
+  border: '#E5E5E5',         // Light border
+  error: '#DC2626',          // Red
+  success: '#10B981',        // Green
+};
+
+const darkTheme: Theme = {
+  primary: '#FFA500',        // Orange
+  secondary: '#FFB84D',      // Light Orange
+  accent: '#FF8C00',         // Dark Orange
+  background: '#1A1A1A',     // Dark gray
+  surface: '#2F2F2F',        // Medium dark gray
+  card: '#3A3A3A',           // Gray
+  text: '#FFFFFF',           // White
+  textSecondary: '#A3A3A3',  // Light gray
+  border: '#4A4A4A',         // Border gray
+  error: '#DC2626',          // Red
+  success: '#22C55E',        // Green
+};
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [themeMode, setThemeModeState] = useState<ThemeMode>('dark');
-  const [isLoading, setIsLoading] = useState(true);
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const systemColorScheme = useColorScheme();
+  const [themeMode, setThemeModeState] = useState<ThemeMode>('system');
+  const [theme, setTheme] = useState<Theme>(systemColorScheme === 'dark' ? darkTheme : lightTheme);
 
   useEffect(() => {
-    loadTheme();
+    loadThemeMode();
   }, []);
 
-  const loadTheme = async () => {
+  useEffect(() => {
+    updateTheme();
+  }, [themeMode, systemColorScheme]);
+
+  const loadThemeMode = async () => {
     try {
-      const savedTheme = await AsyncStorage.getItem(THEME_KEY);
-      if (savedTheme === 'light' || savedTheme === 'dark') {
-        setThemeModeState(savedTheme);
+      const savedMode = await AsyncStorage.getItem(THEME_KEY);
+      if (savedMode && (savedMode === 'light' || savedMode === 'dark' || savedMode === 'system')) {
+        setThemeModeState(savedMode as ThemeMode);
       }
     } catch (error) {
-      console.error('Error loading theme:', error);
-    } finally {
-      setIsLoading(false);
+      console.error('Error loading theme mode:', error);
+    }
+  };
+
+  const updateTheme = () => {
+    if (themeMode === 'system') {
+      setTheme(systemColorScheme === 'dark' ? darkTheme : lightTheme);
+    } else {
+      setTheme(themeMode === 'dark' ? darkTheme : lightTheme);
     }
   };
 
@@ -85,32 +94,25 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       await AsyncStorage.setItem(THEME_KEY, mode);
       setThemeModeState(mode);
     } catch (error) {
-      console.error('Error saving theme:', error);
+      console.error('Error saving theme mode:', error);
     }
   };
 
-  const toggleTheme = () => {
-    const newMode = themeMode === 'light' ? 'dark' : 'light';
-    setThemeMode(newMode);
-  };
-
-  const theme = themeMode === 'light' ? lightTheme : darkTheme;
-
-  if (isLoading) {
-    return null;
-  }
+  const isDark = themeMode === 'system' 
+    ? systemColorScheme === 'dark' 
+    : themeMode === 'dark';
 
   return (
-    <ThemeContext.Provider value={{ theme, themeMode, toggleTheme, setThemeMode }}>
+    <ThemeContext.Provider value={{ theme, themeMode, isDark, setThemeMode }}>
       {children}
     </ThemeContext.Provider>
   );
-};
+}
 
-export const useTheme = () => {
+export function useTheme() {
   const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within ThemeProvider');
+  if (context === undefined) {
+    throw new Error('useTheme must be used within a ThemeProvider');
   }
   return context;
-};
+}
